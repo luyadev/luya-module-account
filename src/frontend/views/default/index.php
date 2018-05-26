@@ -1,11 +1,10 @@
-<h1>Login</h1>
-<?php $form = \yii\widgets\ActiveForm::begin([
-    'id' => 'login-form',
-    'options' => ['class' => 'form-horizontal'],
-]) ?>
-<?php echo $form->field($model, 'email') ?>
-<?php echo $form->field($model, 'password')->passwordInput() ?>
+<?php 
 
-<button type="submit">Submit</button>
+use luya\helpers\Html;
 
-<?php \yii\widgets\ActiveForm::end();?>
+?>
+<?php if ($isGuest): ?>
+<p>You are not logged in. <?= Html::a('Login', ['login']); ?> or <?= Html::a('register', ['signup']); ?></p>
+<?php else: ?>
+<p>You are logged in.</p>
+<?php endif; ?>

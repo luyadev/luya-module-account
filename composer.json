@@ -1,6 +1,6 @@
 {
 	"name" : "luyadev/luya-module-account",
-	"description" : "Yii2 LUYA User Account",
+	"description" : "LUYA Account module",
 	"type" : "project",
 	"keywords" : ["php", "luya", "module", "account", "yii2", "yii", "luya-module"],
 	"license": "MIT",
@@ -13,7 +13,7 @@
 		}
 	],
 	"support" : {
-		"issues" : "https://github.com/luyadev/luya/issues"
+		"issues" : "https://github.com/luyadev/luya-module-account/issues"
 	},
 	"autoload" : {
 		"psr-4" : {

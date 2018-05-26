@@ -3,14 +3,14 @@
 namespace luya\account\admin\controllers;
 
 /**
- * User Controller.
+ * User Login Controller.
  * 
  * File has been created with `crud/create` command. 
  */
-class UserController extends \luya\admin\ngrest\base\Controller
+class UserLoginController extends \luya\admin\ngrest\base\Controller
 {
     /**
      * @var string The path to the model which is the provider for the rules and fields.
      */
-    public $modelClass = 'luya\account\models\User';
+    public $modelClass = 'luya\account\models\UserLogin';
 }

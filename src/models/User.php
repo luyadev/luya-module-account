@@ -5,158 +5,102 @@ namespace luya\account\models;
 use Yii;
 use luya\admin\ngrest\base\NgRestModel;
 
-class User extends NgRestModel implements \yii\web\IdentityInterface
+/**
+ * User.
+ * 
+ * File has been created with `crud/create` command. 
+ *
+ * @property integer $id
+ * @property string $email
+ * @property string $password
+ * @property string $password_salt
+ * @property string $firstname
+ * @property string $lastname
+ * @property tinyint $is_deleted
+ * @property tinyint $is_active
+ */
+class User extends NgRestModel
 {
-    public $password_confirm;
-
-    public $plainPassword;
-
-    public function init()
-    {
-        parent::init();
-        $this->on(self::EVENT_BEFORE_INSERT, [$this, 'encodePassword']);
-    }
-    
+    /**
+     * @inheritdoc
+     */
     public static function tableName()
     {
         return 'account_user';
     }
 
-    public static function findByEmail($email)
-    {
-        return static::findOne(['email' => $email]);
-    }
-
-    public function rules()
-    {
-        return [
-            //[['email', 'password'], 'required', 'on' => 'login'],
-            [['email', 'password', 'password_confirm'], 'required', 'on' => 'register'],
-            [['email'], 'email', 'on' => 'register'],
-            [['email'], 'validateUserExists', 'on' => 'register'],
-            [['password'], 'validatePassword', 'on' => 'register'],
-        ];
-    }
-
-    public function scenarios()
-    {
-        return [
-            'register' => ['firstname', 'lastname', 'email', 'password', 'password_confirm', 'gender', 'street', 'zip', 'city', 'country', 'company', 'subscription_newsletter', 'subscription_medianews'],
-            //'login' => ['email', 'password'],
-            'restupdate' => ['firstname', 'lastname', 'email', 'street', 'zip', 'city', 'country', 'company', 'subscription_newsletter', 'subscription_medianews', 'is_mail_verified', 'is_active'],
-        ];
-    }
-
-    public function validateUserExists($attribute, $params)
-    {
-        $exists = self::findByEmail($this->email);
-        if (!empty($exists)) {
-            $this->addError($attribute, 'Dieser Benutzer existiert schon');
-        }
-    }
-
-    public function validatePassword($attribute, $params)
-    {
-        if (strlen($this->password) < 6) {
-            $this->addError($attribute, 'Das Passwort muss min. 6 Zeichen haben');
-        }
-        if ($this->password !== $this->password_confirm) {
-            $this->addError($attribute, 'Das Passwort muss mit der Passwortwiederholung überein stimmen.');
-        }
-    }
-
-    public function verifyPassword($password)
-    {
-        return Yii::$app->security->validatePassword($password.$this->password_salt, $this->password);
-    }
-
-    public function encodePassword()
-    {
-        $this->plainPassword = $this->password;
-
-        // create random string for password salting
-        $this->password_salt = Yii::$app->getSecurity()->generateRandomString();
-        // store the password
-        $this->password = Yii::$app->getSecurity()->generatePasswordHash($this->password.$this->password_salt);
-        $this->password_confirm = $this->password;
-    }
-
-    /* NgRest */
-    
+    /**
+     * @inheritdoc
+     */
     public static function ngRestApiEndpoint()
     {
         return 'api-account-user';
     }
-    
-    public function ngRestConfig($config)
-    {
-        $config->list->field("firstname", "Vorname")->text();
-        $config->list->field("lastname", "Lastname")->text();
-        $config->list->field("email", "E-Mail")->text();
-        $config->list->field("subscription_newsletter", "Newsletter")->toggleStatus();
-        $config->list->field("subscription_medianews", "Neuigkeiten")->toggleStatus();
-        $config->list->field("is_mail_verified", "E-Mail verifiziert")->toggleStatus();
-        $config->list->field("is_active", "Aktiviert")->toggleStatus();
-        
-        $config->update->copyFrom('list');
-        $config->update->field('street', 'Strasse')->text();
-        $config->update->field('zip', 'PLZ')->text();
-        $config->update->field('city', 'Ortschaft')->text();
-        $config->update->field('country', 'Land')->text();
-        $config->update->field('company', 'Firma')->text();
-        return $config;
-    }
-    
-    /* IdentityInterface */
 
     /**
-     * Finds an identity by the given ID.
-     *
-     * @param string|int $id the ID to be looked for
-     *
-     * @return IdentityInterface|null the identity object that matches the given ID.
+     * @inheritdoc
      */
-    public static function findIdentity($id)
+    public function attributeLabels()
     {
-        return static::findOne($id);
+        return [
+            'id' => Yii::t('app', 'ID'),
+            'email' => Yii::t('app', 'Email'),
+            'password' => Yii::t('app', 'Password'),
+            'password_salt' => Yii::t('app', 'Password Salt'),
+            'firstname' => Yii::t('app', 'Firstname'),
+            'lastname' => Yii::t('app', 'Lastname'),
+            'is_deleted' => Yii::t('app', 'Is Deleted'),
+            'is_active' => Yii::t('app', 'Is Active'),
+        ];
     }
 
     /**
-     * Finds an identity by the given token.
-     *
-     * @param string $token the token to be looked for
-     *
-     * @param null $type
-     * @return IdentityInterface|null the identity object that matches the given token.
+     * @inheritdoc
      */
-    public static function findIdentityByAccessToken($token, $type = null)
+    public function rules()
     {
-        return static::findOne(['auth_token' => $token]);
+        return [
+            [['email', 'password', 'password_salt'], 'required'],
+            [['email', 'firstname', 'lastname'], 'string', 'max' => 120],
+            [['password', 'password_salt'], 'string', 'max' => 140],
+            [['is_deleted', 'is_active'], 'string', 'max' => 1],
+            [['email'], 'unique'],
+        ];
     }
 
     /**
-     * @return int|string current user ID
+     * @inheritdoc
      */
-    public function getId()
+    public function genericSearchFields()
     {
-        return $this->id;
+        return ['email', 'password', 'password_salt', 'firstname', 'lastname'];
     }
 
     /**
-     * @return string current user auth key
+     * @inheritdoc
      */
-    public function getAuthKey()
+    public function ngRestAttributeTypes()
     {
-        return $this->auth_key;
+        return [
+            'email' => 'text',
+            'password' => 'text',
+            'password_salt' => 'text',
+            'firstname' => 'text',
+            'lastname' => 'text',
+            'is_deleted' => 'number',
+            'is_active' => 'number',
+        ];
     }
 
     /**
-     * @param string $authKey
-     *
-     * @return bool if auth key is valid for current user
+     * @inheritdoc
      */
-    public function validateAuthKey($authKey)
+    public function ngRestScopes()
     {
-        return $this->getAuthKey() === $authKey;
+        return [
+            ['list', ['email', 'password', 'password_salt', 'firstname', 'lastname', 'is_deleted', 'is_active']],
+            [['create', 'update'], ['email', 'password', 'password_salt', 'firstname', 'lastname', 'is_deleted', 'is_active']],
+            ['delete', false],
+        ];
     }
 }
